@@ -141,6 +141,10 @@ nav {
   height: 18px;
   background: var(--border);
 }
+.in-game .nav-rule,
+.hud .sound span {
+  display: none;
+}
 .shell {
   padding: 30px 0 26px;
 }
@@ -446,6 +450,7 @@ kbd {
 }
 .hud-item small {
   font-size: 13px;
+  white-space: nowrap;
 }
 .square,
 .secondary {

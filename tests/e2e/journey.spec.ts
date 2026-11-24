@@ -70,14 +70,16 @@ test.describe('375px touchscreen', () => {
     }
     const right = await contact('#right', 1)
     const jump = await contact('#jump', 2)
-    const move = () => client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [right] })
-    const lift = () => client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
-    await move()
+    await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [right] })
     await flyRoute(page,
       async () => { await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [right, jump] }) },
-      async () => { await lift(); await move() },
+      async () => {
+        await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [jump] })
+        await expect(page.locator('#right')).toHaveAttribute('data-held', 'true')
+        await expect(page.locator('#jump')).not.toHaveAttribute('data-held', 'true')
+      },
     )
-    await lift()
+    await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
     await expect(page.getByRole('heading', { name: /delivery complete/i })).toBeVisible()
     expect(await page.evaluate(() => [window.scrollX, window.scrollY])).toEqual([0, 0])
   })

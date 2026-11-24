@@ -25,6 +25,8 @@ const resume = element<HTMLButtonElement>("continue");
 const retry = element<HTMLButtonElement>("retry");
 const start = element<HTMLButtonElement>("start");
 const pause = element<HTMLButtonElement>("pause");
+const soundButton = element<HTMLButtonElement>("sound");
+const deskTools = element("desk-tools");
 const guide = element<HTMLDialogElement>("guide");
 const notice = element("notice");
 const input = new Controls();
@@ -148,9 +150,16 @@ function newRun() {
   syncHud();
   desk.hidden = true;
   game.hidden = false;
+  pause.before(soundButton);
+  soundButton.classList.replace("tool", "square");
   document.body.classList.add("in-game");
   window.scrollTo(0, 0);
-  play();
+  if (guide.open || document.hidden) {
+    draw();
+    showOverlay("paused");
+  } else {
+    play();
+  }
 }
 
 start.addEventListener("click", async () => {
@@ -179,6 +188,8 @@ element("choose").addEventListener("click", () => {
   game.hidden = true;
   desk.hidden = false;
   overlay.hidden = true;
+  deskTools.append(soundButton);
+  soundButton.classList.replace("square", "tool");
   document.body.classList.remove("in-game");
   document
     .querySelector<HTMLButtonElement>("[data-hero][aria-pressed=true]")
@@ -199,18 +210,18 @@ function inside(node: Element, x: number, y: number) {
   return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
 }
 
-element("sound").addEventListener("click", () => {
+soundButton.addEventListener("click", () => {
   sound.unlock();
   sound.toggle();
-  const button = element("sound");
   const label = sound.muted ? "Enable sound" : "Mute sound";
-  button.setAttribute("aria-label", label);
-  button.title = label;
-  button.querySelector("i")!.className =
+  soundButton.setAttribute("aria-label", label);
+  soundButton.title = label;
+  soundButton.querySelector("i")!.className =
     "ph " + (sound.muted ? "ph-speaker-slash" : "ph-speaker-high");
-  button.querySelector("span")!.textContent = sound.muted
+  soundButton.querySelector("span")!.textContent = sound.muted
     ? "Sound off"
     : "Sound on";
+  if (mode === "running") stage.focus({ preventScroll: true });
 });
 
 const keys: Record<string, Action | undefined> = {
