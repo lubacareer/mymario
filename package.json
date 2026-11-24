@@ -1,5 +1,5 @@
 {
-  "name": "bellwind-post",
+  "name": "orbit-arcade",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run tests/unit",
+    "pretest:e2e": "npm run build",
     "test:e2e": "playwright test"
   },
   "devDependencies": {

@@ -556,6 +556,21 @@ dialog dd {
   padding: 7px;
   font-size: 14px;
 }
+.back-library {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 650;
+  text-underline-offset: 3px;
+}
+#desk > .back-library {
+  margin-bottom: 12px;
+}
+.overlay-card .back-library {
+  margin-top: 7px;
+}
 .game-controls {
   margin-top: 16px;
 }

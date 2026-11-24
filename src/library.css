@@ -1,0 +1,112 @@
+@font-face {
+  font-family: "DM Sans";
+  src: url("@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2");
+  font-weight: 100 1000;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fraunces;
+  src: url("@fontsource-variable/fraunces/files/fraunces-latin-wght-italic.woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Mono";
+  src: url("@fontsource/space-mono/files/space-mono-latin-400-normal.woff2");
+  font-display: swap;
+}
+:root {
+  font-family: "DM Sans", system-ui, sans-serif;
+  color: #212b28;
+  background: #f5f2e8;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+h1, h2, h3, p { margin: 0; }
+.library { max-width: 1320px; margin: auto; padding: clamp(22px, 4vw, 60px); }
+.library-head, .identity, .shelf { display: flex; align-items: center; }
+.library-head { justify-content: space-between; gap: 1rem; padding-bottom: clamp(26px, 4vw, 54px); }
+.identity { gap: clamp(14px, 2.2vw, 32px); }
+.orbit {
+  position: relative;
+  margin-inline: 0.13em;
+  width: 0.71em;
+  height: 0.71em;
+  flex: none;
+  border-radius: 50%;
+  background: #e34e2b;
+  font-size: clamp(42px, 6.6vw, 88px);
+  transform: rotate(-32deg);
+}
+.orbit::after {
+  content: "";
+  position: absolute;
+  inset: 32% -31% 30%;
+  border: 0.052em solid #e34e2b;
+  border-radius: 50%;
+  border-top-color: transparent;
+  box-shadow: 0 0.04em 0 #f5f2e8, inset 0 -0.04em 0 #f5f2e8;
+}
+h1 { font-size: clamp(43px, 7.1vw, 100px); font-weight: 850; line-height: 1; letter-spacing: -0.085em; }
+h1 em { font-style: normal; color: #b54024; }
+.controls-info, .shelf span, .genre {
+  font: 400 12px/1.4 "Space Mono", monospace;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.controls-info { display: flex; align-items: center; gap: 10px; }
+.controls-info::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #37805e; }
+.shelf { gap: 16px; padding: 12px 0 16px; border-top: 2px solid currentColor; justify-content: space-between; }
+.shelf h2 { font-size: 20px; font-weight: 730; letter-spacing: -0.04em; }
+.shelf span { color: #535e56; }
+.games { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(15px, 2vw, 28px); }
+.game {
+  --accent: #ffdf9b;
+  color: #fff8e8;
+  background: #183d3c;
+  border-radius: 14px;
+  overflow: hidden;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+}
+.game:focus-visible { outline: 4px solid #1c61ab; outline-offset: 4px; }
+.run { --accent: #c7ef89; background: #20243a; }
+.cover { width: 100%; aspect-ratio: 1.84; overflow: hidden; position: relative; }
+.post .cover { background: #b9dbd4 url("/art/sky.webp") center 50% / cover; }
+.cover img { display: block; width: 100%; height: 100%; }
+.cover .couriers { object-fit: contain; object-position: 50% 100%; }
+.cover .racer { object-fit: cover; }
+.details { flex: 1; display: flex; flex-direction: column; align-items: start; padding: clamp(20px, 2.4vw, 34px); }
+.genre { color: var(--accent); font-size: 11px; letter-spacing: 0.12em; }
+.details h3 { font-size: clamp(33px, 4.2vw, 60px); line-height: 1.1; letter-spacing: -0.07em; margin: 7px 0; }
+.post h3 em { font: italic 660 1em/1 Fraunces, Georgia, serif; }
+.run h3 em { display: inline-block; font-style: normal; transform: skew(-10deg); }
+.details p { max-width: 36ch; font-size: clamp(15px, 1.3vw, 18px); line-height: 1.45; color: #edeee5; margin-bottom: 24px; }
+.play {
+  display: inline-flex;
+  align-items: center;
+  gap: 17px;
+  margin-top: auto;
+  padding: 12px 17px;
+  background: var(--accent);
+  color: #172d2b;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 780;
+}
+.play span { font-size: 21px; line-height: 1; transition: transform 150ms; }
+.game:hover .play, .game:focus-visible .play { background: #fffbec; }
+.game:hover .play span { transform: translate(2px, -2px); }
+@media (max-width: 680px) {
+  .library { padding: 25px 16px; }
+  .games { grid-template-columns: 1fr; gap: 20px; }
+  .controls-info { display: none; }
+  .details h3 { font-size: 39px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play span { transition: none; }
+}
