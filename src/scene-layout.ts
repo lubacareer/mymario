@@ -1,3 +1,20 @@
+import type { GameState } from './game/simulation';
+
+const APEX_SPEED = 65;
+const BLINK_PERIOD_TICKS = 104;
+const BLINK_TICKS = 12;
+
+// Atlas order: idle, run A, run B, rising, idle blink, apex, falling.
+export function courierFrame(player: Pick<GameState['player'], 'grounded' | 'vx' | 'vy'>, ticks: number, reducedMotion: boolean) {
+  if (!player.grounded) {
+    if (player.vy < -APEX_SPEED) return 3;
+    if (player.vy > APEX_SPEED) return 6;
+    return 5;
+  }
+  if (Math.abs(player.vx) > 8) return 1 + Math.floor(ticks / 8) % 2;
+  return !reducedMotion && ticks % BLINK_PERIOD_TICKS >= BLINK_PERIOD_TICKS - BLINK_TICKS ? 4 : 0;
+}
+
 const WORLD_VIEW_HEIGHT = 360;
 const MIN_VIEW_WIDTH = 400;
 const CAMERA_LEAD = 0.37;

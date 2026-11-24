@@ -1,13 +1,14 @@
 import { LEVEL, type GameState } from './game/simulation';
 import { loadGraphics, type Graphics } from './graphics';
-import { cameraLayout, islandSlices } from './scene-layout';
+import { cameraLayout, courierFrame, islandSlices } from './scene-layout';
 
 type Paint = CanvasRenderingContext2D;
 type View = ReturnType<typeof cameraLayout>;
 type Platform = typeof LEVEL.platforms[number];
 
-const CELLS_PER_COURIER = 4;
 const ATLAS_SCALE = 2;
+const POST_OFFICE_HEIGHT = 84;
+const POST_OFFICE_X = LEVEL.spawn.x + 60;
 // Ground contact sits midway down the grass strip (around row 108 of the 320px source).
 const SURFACE_IN_IMAGE = 108 / 320;
 const TAU = Math.PI * 2;
@@ -64,20 +65,19 @@ function drawShadow(ctx: Paint, x: number, y: number, radius: number) {
   ctx.fill();
 }
 
-function drawCourier(ctx: Paint, image: HTMLImageElement, state: GameState) {
+function drawCourier(ctx: Paint, image: HTMLImageElement, state: GameState, reducedMotion: boolean) {
   const { player, ticks } = state;
   const x = player.x + player.w / 2;
   const feet = player.y + player.h;
   if (player.grounded) drawShadow(ctx, x, feet + 0.7, player.w * 0.64);
-  const running = Math.abs(player.vx) > 8;
-  const frame = player.grounded ? (running ? 1 + Math.floor(ticks / 8) % 2 : 0) : 3;
-  const cellWidth = image.width / CELLS_PER_COURIER;
-  const height = player.h * 1.40;
-  const width = height * cellWidth / image.height;
+  const frame = courierFrame(player, ticks, reducedMotion);
+  // Each pose occupies a square cell in a single horizontal strip.
+  const cellSize = image.height;
+  const drawSize = player.h * 1.40;
   ctx.save();
   ctx.translate(x, feet);
   ctx.scale(player.facing, 1);
-  ctx.drawImage(image, frame * cellWidth, 0, cellWidth, image.height, -width / 2, -height, width, height);
+  ctx.drawImage(image, frame * cellSize, 0, cellSize, cellSize, -drawSize / 2, -drawSize, drawSize, drawSize);
   ctx.restore();
 }
 
@@ -152,6 +152,7 @@ export async function createScene(canvas: HTMLCanvasElement) {
     const visible = (x: number) => x >= view.cameraX - 140 && x <= view.cameraX + view.width + 140;
     const time = reducedMotion ? 0 : state.ticks / 60;
     ctx.translate(-view.cameraX, view.offsetY);
+    if (visible(POST_OFFICE_X)) drawAtFeet(ctx, art['post-office'], POST_OFFICE_X, LEVEL.spawn.y + 1, POST_OFFICE_HEIGHT);
     if (visible(LEVEL.checkpoint.x)) drawCheckpoint(ctx, art.windmill, state.checkpoint);
     if (visible(LEVEL.bell.x)) drawAtFeet(ctx, art.bell, LEVEL.bell.x, LEVEL.bell.y + 1, 67);
     LEVEL.platforms.forEach((platform, index) => {
@@ -161,7 +162,7 @@ export async function createScene(canvas: HTMLCanvasElement) {
     });
     drawStamps(ctx, art.stamp, state, visible, time);
     drawBeetles(ctx, art.beetle, state, visible, time);
-    drawCourier(ctx, art[state.hero], state);
+    drawCourier(ctx, art[state.hero], state, reducedMotion);
   }
   return { draw };
 }

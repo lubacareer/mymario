@@ -1,4 +1,4 @@
-const ART_NAMES = ['sky', 'island', 'windmill', 'nia', 'finn', 'beetle', 'stamp', 'bell'] as const;
+const ART_NAMES = ['sky', 'island', 'post-office', 'windmill', 'nia', 'finn', 'beetle', 'stamp', 'bell'] as const;
 
 type ArtName = typeof ART_NAMES[number];
 export type Graphics = Record<ArtName, HTMLImageElement>;

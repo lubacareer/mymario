@@ -40,11 +40,10 @@ export const LEVEL = {
   platforms,
   stamps: [
     stamp('yard', 188, 240), stamp('rooftop', 372, 176),
-    stamp('first-gap', 608, 171), stamp('post-road', 874, 230),
-    stamp('blue-gap', 1054, 162), stamp('lookout', 1410, 218),
-    stamp('windmill', 1600, 223), stamp('windmill-roof', 1960, 162),
-    stamp('windward', 2108, 158), stamp('beetle-trail', 2780, 218),
-    stamp('final-crossing', 2950, 168), stamp('bell-approach', 3262, 156),
+    stamp('first-ascent', 556, 204), stamp('first-gap', 624, 168), stamp('first-descent', 692, 211),
+    stamp('blue-ascent', 992, 194), stamp('blue-gap', 1060, 158), stamp('blue-descent', 1128, 201),
+    stamp('windmill-roof', 1960, 162),
+    stamp('final-ascent', 2896, 202), stamp('final-crossing', 2964, 166), stamp('final-descent', 3032, 209),
   ],
   patrols: [
     { id: 'mill', left: 1730, right: 1822, floorY: 250, speed: 34 },

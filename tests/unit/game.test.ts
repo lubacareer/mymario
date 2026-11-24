@@ -82,15 +82,35 @@ describe('courier movement', () => {
 })
 
 describe('stage rules', () => {
+  it.each([0, 1, 5])('marks the jump across gap %i with an ascent, apex and descent', gap => {
+    const islands = LEVEL.platforms.filter(platform => platform.kind === 'island')
+    const edge = islands[gap].x + islands[gap].w
+    const landing = islands[gap + 1].x
+    const arc = LEVEL.stamps.filter(stamp => stamp.x >= edge - 48 && stamp.x <= landing + 48)
+      .sort((a, b) => a.x - b.x)
+    expect(arc).toHaveLength(3)
+    const [ascent, apex, descent] = arc
+    expect(ascent.x).toBeLessThan(edge)
+    expect(apex.x).toBeGreaterThan(edge)
+    expect(apex.x).toBeLessThan(landing)
+    expect(descent.x).toBeGreaterThan(landing)
+    expect(apex.y).toBeLessThanOrEqual(Math.min(ascent.y, descent.y) - 30)
+  })
+
+  const fullRoute = [45, 121, 230, 341, 431, 477, 591, 643, 706, 783, 833]
   it.each([
     { hero: 'nia', stamps: 10, takeoffs: [121, 230, 341, 416, 496, 591, 643, 706, 783, 833] },
-    { hero: 'finn', stamps: 12, takeoffs: [45, 121, 230, 341, 428, 471, 490, 591, 643, 706, 783, 833] },
+    { hero: 'nia', stamps: 12, takeoffs: fullRoute },
+    { hero: 'finn', stamps: 12, takeoffs: fullRoute },
   ] as const)('lets $hero deliver with $stamps stamps using real controls', ({ hero, stamps, takeoffs }) => {
     const state = createGame(hero)
-    // The second route also visits the two optional rooftop stamps.
+    // The full route also visits the two optional rooftop stamps.
     const jumps = new Set<number>(takeoffs)
+    let releaseAt = 0
     for (let frame = 0; frame < 960 && state.status === 'playing'; frame++) {
-      stepGame(state, { direction: 1, jumpPressed: jumps.has(frame), jumpHeld: true })
+      const jumpPressed = jumps.has(frame)
+      if (jumpPressed) releaseAt = frame + 35
+      stepGame(state, { direction: 1, jumpPressed, jumpHeld: frame < releaseAt })
     }
     expect(state.status).toBe('won')
     expect(state.lives).toBe(3)
