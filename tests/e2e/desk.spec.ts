@@ -66,12 +66,14 @@ test('the stamp total stays on one line and the HUD fits narrow phones', async (
     const layout = await page.locator('[aria-label="Stamps"] small').evaluate(total => {
       const text = document.createRange()
       text.selectNodeContents(total)
+      const hud = total.closest('.hud')!
       return {
         lines: text.getClientRects().length,
         width: document.documentElement.scrollWidth,
+        fitsHeader: hud.getBoundingClientRect().right <= hud.parentElement!.getBoundingClientRect().right + 0.5,
       }
     })
-    expect(layout, `Gameplay HUD at ${width}px`).toEqual({ lines: 1, width })
+    expect(layout, `Gameplay HUD at ${width}px`).toEqual({ lines: 1, width, fitsHeader: true })
     await expect(page.getByRole('button', { name: 'Pause delivery' })).toBeInViewport({ ratio: 1 })
     await expect(page.getByRole('button', { name: 'Mute sound' })).toBeInViewport({ ratio: 1 })
   }

@@ -829,6 +829,18 @@ dialog dd {
     padding: 12px 18px;
   }
 }
+/* Give the controls a full row when the title and HUD no longer fit side by side. */
+@media (max-width: 360px) {
+  .game-header {
+    display: grid;
+  }
+  .game-header .hud {
+    justify-content: flex-start;
+  }
+  .game-header .sound {
+    margin-left: auto;
+  }
+}
 @media (max-height: 540px) and (orientation: landscape) {
   body.in-game .masthead {
     display: none;
