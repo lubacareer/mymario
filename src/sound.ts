@@ -1,6 +1,7 @@
 import type { GameEvent } from "./game/simulation";
 
-const notes: Record<Exclude<GameEvent, "victory">, [number, number]> = {
+type BoothCue = "drum" | "ribbon" | "lantern";
+const notes: Record<Exclude<GameEvent, BoothCue | "victory">, [number, number]> = {
   jump: [235, 360],
   stamp: [700, 1047],
   stomp: [170, 85],
@@ -15,6 +16,7 @@ interface Voice {
   duration: number;
   glideTo?: number;
   type?: OscillatorType;
+  delay?: number;
 }
 
 // The low hum, strike pitch and minor third linger after the clapper's bright
@@ -27,6 +29,23 @@ const bellPartials: Voice[] = [
   { frequency: 1907, peak: 0.036, duration: 0.45 },
   { frequency: 2762, peak: 0.023, duration: 0.22 },
 ];
+
+const boothVoices: Record<BoothCue, Voice[]> = {
+  drum: [
+    { frequency: 125, glideTo: 48, peak: 0.13, duration: 0.24 },
+    ...[294, 370, 440].map(frequency => ({
+      frequency, type: "triangle" as const, peak: 0.034, duration: 0.3, delay: 0.055,
+    })),
+  ],
+  ribbon: [
+    { frequency: 650, glideTo: 920, peak: 0.06, duration: 0.09 },
+    { frequency: 890, glideTo: 1320, peak: 0.05, duration: 0.13, delay: 0.075 },
+  ],
+  lantern: [
+    { frequency: 784, peak: 0.07, duration: 0.55 },
+    { frequency: 1175, peak: 0.045, duration: 0.38, delay: 0.04 },
+  ],
+};
 
 function playVoice(
   ctx: AudioContext,
@@ -89,6 +108,11 @@ export class PostalAudio {
     if (event === "victory") {
       for (const partial of bellPartials)
         playVoice(ctx, this.output, now, partial, 0.003);
+      return;
+    }
+    if (event === "drum" || event === "ribbon" || event === "lantern") {
+      for (const voice of boothVoices[event])
+        playVoice(ctx, this.output, now + (voice.delay ?? 0), voice, 0.006);
       return;
     }
     const [frequency, glideTo] = notes[event];

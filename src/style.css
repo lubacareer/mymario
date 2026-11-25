@@ -247,6 +247,100 @@ h1 em {
 .dispatch {
   padding-top: 29px;
 }
+.route-label b {
+  font-weight: inherit;
+}
+#desk[data-route="carnival"] .card-sky {
+  background-image: url("/art/carnival/sky.webp");
+}
+.route-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.route-ticket {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fcfaf3;
+}
+.route-ticket > i:first-child {
+  color: var(--green);
+  font-size: 28px;
+}
+.route-ticket small, .route-ticket strong {
+  display: block;
+}
+.route-ticket small {
+  color: var(--sub);
+  text-transform: uppercase;
+  font: 10px/1.4 var(--mono);
+  letter-spacing: 1px;
+}
+.route-ticket strong {
+  font: 700 clamp(17px, 3vw, 24px)/1.2 var(--serif);
+  letter-spacing: -.6px;
+}
+.route-ticket:disabled {
+  opacity: 1;
+  color: var(--sub);
+  background: #eeece3;
+  cursor: default;
+}
+.route-ticket[aria-pressed="true"] {
+  border-color: var(--green);
+  box-shadow: inset 3px 0 var(--green);
+}
+.route-ticket[data-route="carnival"]:enabled > i:first-child {
+  color: var(--coral);
+}
+#route-lock {
+  margin-left: auto;
+}
+#route-access {
+  font-size: 13px;
+  color: var(--sub);
+  margin-bottom: 16px;
+}
+.booth-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 10px;
+  font-size: 14px;
+}
+.seal-count {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 3px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  color: #4a3023;
+  background: #f9dfa1;
+}
+.seal-count i {
+  font-size: 19px;
+}
+#objective { font-weight: 650; }
+#game[data-route="carnival"] .game-header { margin-bottom: 0; }
+.game-overlay.finale {
+  background: linear-gradient(to bottom, transparent, #203e3c3d);
+  align-items: end;
+}
+.game-overlay.finale .overlay-card > i { display: none; }
+#load-error { padding: 8px; }
+@media (max-width: 650px) {
+  .route-options { gap: 8px; }
+  .route-ticket { gap: 7px; padding: 9px; }
+  .route-ticket > i:first-child { display: none; }
+  .booth-progress { gap: 7px; font-size: 12px; }
+}
 .dispatch-title {
   display: flex;
   align-items: center;
@@ -877,6 +971,11 @@ dialog dd {
     height: calc(100svh - 112px);
     min-height: 120px;
   }
+  #game[data-route="carnival"] #stage {
+    height: calc(100svh - 148px);
+  }
+  .booth-progress { padding: 2px 0 4px; }
+  .overlay-actions { flex-wrap: wrap; }
   .game-controls {
     margin-top: 5px;
   }
