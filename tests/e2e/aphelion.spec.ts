@@ -92,6 +92,22 @@ test('a keyboard pilot finishes all three courses and retains best times after r
 
 test.describe('375px flight deck', () => {
   test.use({ viewport: { width: 375, height: 760 }, isMobile: true, hasTouch: true })
+  test('click-only steering clears the first Dawn Array barrier', async ({ page }) => {
+    await enterCockpit(page)
+    await page.getByRole('button', { name: 'Launch course' }).tap({ force: true })
+    const right = page.getByRole('button', { name: 'Steer right' })
+    // Each keyboard activation of the pad has no pointerdown or held direction.
+    for (let i = 0; i < 24; i++) {
+      await right.press('Enter')
+      await page.clock.runFor(32)
+    }
+    await page.clock.runFor(2800 - 24 * 32)
+    await page.getByRole('button', { name: 'Jump', exact: true }).press('Enter')
+    await page.clock.runFor(4000)
+    await expect(page.locator('#cockpit')).toHaveAttribute('data-state', 'running')
+    expect(parseInt(await page.locator('#progress').innerText(), 10)).toBeGreaterThan(26)
+  })
+
   test('a two-finger pilot completes the cup and can replay with storage denied', async ({ page }) => {
     test.setTimeout(180_000)
     await page.addInitScript(() => {
@@ -125,6 +141,27 @@ test.describe('short landscape touchscreen', () => {
     await library.tap({ force: true })
     await expect(page).toHaveTitle(/Orbit Arcade/)
   })
+})
+
+test('Space activates focused flight buttons and jumps after a pointer mute', async ({ page }) => {
+  await enterCockpit(page)
+  await page.getByRole('button', { name: 'Launch course' }).click({ force: true })
+  await page.getByRole('button', { name: 'Pause', exact: true }).press('Space')
+  await expect(page.locator('#cockpit')).toHaveAttribute('data-state', 'paused')
+  await page.getByRole('button', { name: 'Resume', exact: true }).press('Space')
+  const mute = page.locator('#mute')
+  await mute.press('Space')
+  await expect(mute).toHaveAccessibleName('Unmute sound')
+  await expect(mute).toBeFocused()
+  await mute.press('Space')
+  await expect(mute).toHaveAccessibleName('Mute sound')
+  await page.clock.runFor(2800)
+  await mute.click({ force: true })
+  await expect(page.locator('#flight-scene')).toBeFocused()
+  await page.keyboard.press('Space')
+  await page.clock.runFor(1800)
+  await expect(mute).toHaveAccessibleName('Unmute sound')
+  await expect(page.locator('#cockpit')).toHaveAttribute('data-state', 'running')
 })
 
 test('throttle holds, pause freezes instruments, and a crash can be retried immediately', async ({ page }) => {

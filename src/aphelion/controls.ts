@@ -13,11 +13,15 @@ export function actionForKey(code: string) {
 
 export class FlightControls {
   private held = new Map<string, Action>();
-  private jumpQueued = false;
+  private pending = new Set<"left" | "right" | "jump">();
+
+  activate(action: "left" | "right" | "jump") {
+    this.pending.add(action);
+  }
 
   press(source: string, action: Action) {
     if (this.held.has(source)) return;
-    if (action === "jump") this.jumpQueued = true;
+    if (action === "jump") this.activate(action);
     this.held.set(source, action);
   }
 
@@ -27,19 +31,20 @@ export class FlightControls {
 
   clear() {
     this.held.clear();
-    this.jumpQueued = false;
+    this.pending.clear();
   }
 
   frame(): FlightInput {
-    let left = false, right = false, faster = false, slower = false;
+    let left = this.pending.has("left"), right = this.pending.has("right");
+    let faster = false, slower = false;
     for (const action of this.held.values()) {
       left ||= action === "left";
       right ||= action === "right";
       faster ||= action === "faster";
       slower ||= action === "slower";
     }
-    const jump = this.jumpQueued;
-    this.jumpQueued = false;
+    const jump = this.pending.has("jump");
+    this.pending.clear();
     return { steer: axis(left, right), throttle: axis(slower, faster), jump };
   }
 }

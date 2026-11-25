@@ -178,13 +178,14 @@ el("select").addEventListener("click", () => {
   selectCourse(course);
   el("course-" + course.id).focus({ preventScroll: true });
 });
-muteButton.addEventListener("click", () => {
+muteButton.addEventListener("click", e => {
   audio.unlock();
   audio.toggle();
   const label = audio.muted ? "Unmute sound" : "Mute sound";
   muteButton.setAttribute("aria-label", label);
   muteButton.title = label;
   muteButton.firstElementChild!.className = "ph " + (audio.muted ? "ph-speaker-slash" : "ph-speaker-high");
+  if (mode === "running" && e.detail > 0) canvas.focus({ preventScroll: true });
 });
 window.addEventListener("blur", pauseFlight);
 window.addEventListener("pagehide", pauseFlight);
@@ -207,17 +208,20 @@ window.addEventListener("keydown", e => {
   }
   const action = actionForKey(e.code);
   if (mode !== "running" || !action) return;
+  if (e.target instanceof HTMLElement &&
+      (e.target.isContentEditable || e.target.closest("button, a[href], input, select, textarea"))) return;
   e.preventDefault();
   if (!e.repeat) controls.press(e.code, action);
 });
 window.addEventListener("keyup", e => controls.release(e.code));
 
-function pressPad(source: string, action: Action) {
+function pressPad(action: Action, source?: string) {
   if (mode !== "running") return;
   if (action === "faster" || action === "slower") {
     const step = action === "faster" ? 2 : -2;
     run.speed = Math.min(MAX_SPEED, Math.max(MIN_SPEED, run.speed + step));
-  } else controls.press(source, action);
+  } else if (source === undefined) controls.activate(action);
+  else controls.press(source, action);
 }
 
 for (const pad of touchDeck.querySelectorAll<HTMLButtonElement>("[data-pad]")) {
@@ -226,7 +230,7 @@ for (const pad of touchDeck.querySelectorAll<HTMLButtonElement>("[data-pad]")) {
     if (e.button !== 0) return;
     e.preventDefault();
     pad.setPointerCapture(e.pointerId);
-    pressPad("pad:" + e.pointerId, action);
+    pressPad(action, "pad:" + e.pointerId);
   });
   const release = (e: PointerEvent) => controls.release("pad:" + e.pointerId);
   pad.addEventListener("pointerup", release);
@@ -234,7 +238,7 @@ for (const pad of touchDeck.querySelectorAll<HTMLButtonElement>("[data-pad]")) {
   pad.addEventListener("lostpointercapture", release);
   // Keyboard and assistive technology can activate a button without a pointer.
   pad.addEventListener("click", e => {
-    if (e.detail === 0) { pressPad("activate", action); controls.release("activate"); }
+    if (e.detail === 0) pressPad(action);
   });
 }
 

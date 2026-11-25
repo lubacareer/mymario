@@ -2,6 +2,20 @@ import { describe, expect, it } from "vitest";
 import { FlightControls, FixedClock, actionForKey } from "../../src/aphelion/controls";
 
 describe("flight controls", () => {
+  it("consumes click-only steering for one tick and clears pending activations on reset", () => {
+    const controls = new FlightControls();
+    controls.activate("left");
+    expect(controls.frame().steer).toBe(-1);
+    expect(controls.frame().steer).toBe(0);
+    controls.press("KeyA", "left");
+    controls.activate("right");
+    expect(controls.frame().steer).toBe(0);
+    expect(controls.frame().steer).toBe(-1);
+    controls.activate("right");
+    controls.clear();
+    expect(controls.frame().steer).toBe(0);
+  });
+
   it("steers while a second finger taps and releases jump between simulation ticks", () => {
     const controls = new FlightControls();
     controls.press("finger:1", "left");
