@@ -92,6 +92,38 @@ test('a keyboard pilot finishes all three courses and retains best times after r
 
 test.describe('375px flight deck', () => {
   test.use({ viewport: { width: 375, height: 760 }, isMobile: true, hasTouch: true })
+  for (const keys of [
+    { layout: 'Arrow', faster: 'ArrowUp', slower: 'ArrowDown', right: 'ArrowRight', activate: 'Space' },
+    { layout: 'WASD', faster: 'w', slower: 's', right: 'd', activate: 'Enter' },
+  ]) {
+    test(`${keys.layout} controls work while a flight pad is focused`, async ({ page }) => {
+      await enterCockpit(page)
+      await page.getByRole('button', { name: 'Launch course' }).tap({ force: true })
+      await page.keyboard.press('Tab')
+      const pad = page.getByRole('button', { name: 'Steer left' })
+      await expect(pad).toBeFocused()
+
+      await page.keyboard.down(keys.right)
+      await page.keyboard.down(keys.faster)
+      await page.clock.runFor(300)
+      await page.keyboard.up(keys.faster)
+      expect(Number(await page.locator('#speed').textContent())).toBeGreaterThan(20)
+      await page.keyboard.down(keys.slower)
+      await page.clock.runFor(300)
+      await page.keyboard.up(keys.slower)
+      await page.keyboard.up(keys.right)
+      await expect(page.locator('#speed')).toHaveText('20')
+      await expect(pad).toBeFocused()
+
+      // Jump the first gap. The barrier beyond it requires the steering input above.
+      await page.clock.runFor(2200)
+      await page.getByRole('button', { name: 'Jump', exact: true }).press(keys.activate)
+      await page.clock.runFor(4000)
+      await expect(page.locator('#cockpit')).toHaveAttribute('data-state', 'running')
+      expect(parseInt(await page.locator('#progress').innerText(), 10)).toBeGreaterThan(26)
+    })
+  }
+
   test('click-only steering clears the first Dawn Array barrier', async ({ page }) => {
     await enterCockpit(page)
     await page.getByRole('button', { name: 'Launch course' }).tap({ force: true })

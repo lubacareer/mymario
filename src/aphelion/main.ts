@@ -193,6 +193,11 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) pause
 
 window.addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const target = e.target;
+  if (target instanceof HTMLElement) {
+    if (target.isContentEditable || target.closest("input, select, textarea")) return;
+    if (e.code === "Space" && target.closest("button, a[href]")) return;
+  }
   if (e.code === "Escape" && (mode === "running" || mode === "paused")) {
     e.preventDefault();
     if (!e.repeat) {
@@ -208,8 +213,6 @@ window.addEventListener("keydown", e => {
   }
   const action = actionForKey(e.code);
   if (mode !== "running" || !action) return;
-  if (e.target instanceof HTMLElement &&
-      (e.target.isContentEditable || e.target.closest("button, a[href], input, select, textarea"))) return;
   e.preventDefault();
   if (!e.repeat) controls.press(e.code, action);
 });
