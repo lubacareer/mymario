@@ -48,6 +48,14 @@ function crash(run: RunState, cause: Failure, events: FlightEvent[]) {
   events.push('crash')
 }
 
+// The endpoint is inside the footprint. At a corner both axes must have entered it.
+function deckEntryFraction(deck: Surface, x0: number, z0: number, x1: number, z1: number) {
+  let entry = Math.max(0, (deck.zMin - z0) / (z1 - z0))
+  if (x0 < deck.xMin) entry = Math.max(entry, (deck.xMin - x0) / (x1 - x0))
+  else if (x0 >= deck.xMax) entry = Math.max(entry, (deck.xMax - x0) / (x1 - x0))
+  return entry
+}
+
 /** Integrate one fixed tick. A raised surface has a solid front and sides; land only from above. */
 export function stepRun(run: RunState, input: FlightInput): FlightEvent[] {
   const events: FlightEvent[] = []
@@ -66,18 +74,25 @@ export function stepRun(run: RunState, input: FlightInput): FlightEvent[] {
     events.push('jump')
   }
   const priorY = run.y
+  const startedGrounded = run.grounded
   run.vy -= run.course.gravity * STEP
-  run.y += run.vy * STEP
+  const verticalTravel = run.vy * STEP
+  run.y += verticalTravel
   const deck = topSurfaceAt(run.course, run.x, run.z)
   run.grounded = false
-  if (deck && run.y <= deck.height) {
-    if (priorY < deck.height || deck.kind === 'barrier') {
+  if (deck) {
+    // A rolling skid stays level across seams between adjacent coplanar decks.
+    const entryY = startedGrounded ? priorY
+      : priorY + deckEntryFraction(deck, priorX, priorZ, run.x, run.z) * verticalTravel
+    if (entryY < deck.height || (deck.kind === 'barrier' && run.y <= deck.height)) {
       crash(run, 'impact', events)
       return events
     }
-    run.y = deck.height
-    run.vy = 0
-    run.grounded = true
+    if (run.y <= deck.height) {
+      run.y = deck.height
+      run.vy = 0
+      run.grounded = true
+    }
   }
 
   run.oxygen = Math.max(0, run.oxygen - OXYGEN_PER_SECOND * STEP)
@@ -97,10 +112,16 @@ export function stepRun(run: RunState, input: FlightInput): FlightEvent[] {
     // Sample the line itself: a steering tick can straddle both its end and a side edge.
     const fraction = (run.course.length - priorZ) / (run.z - priorZ)
     const crossingX = priorX + fraction * (run.x - priorX)
+    const crossingY = priorY + fraction * verticalTravel
     const gate = topSurfaceAt(run.course, crossingX, run.course.length)
-    if (gate && gate.kind !== 'barrier' && Math.max(priorY, run.y) >= gate.height) {
-      run.status = 'finished'
-      events.push('finish')
+    if (gate && gate.kind !== 'barrier') {
+      // The deck supports an earlier landing, or a rolling skid that leaves just past the line.
+      const supported = (run.grounded && deck === gate)
+        || (startedGrounded && topSurfaceAt(run.course, priorX, priorZ) === gate)
+      if (crossingY >= gate.height || supported) {
+        run.status = 'finished'
+        events.push('finish')
+      }
     }
   }
   return events

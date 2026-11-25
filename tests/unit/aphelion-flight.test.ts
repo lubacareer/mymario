@@ -60,6 +60,28 @@ describe('flight dynamics', () => {
     expect(clear.y).toBe(1.25)
   })
 
+  it.each([
+    { edge: 'front', x: 4, z: 82.733333, steer: 0 },
+    { edge: 'left side', x: 2.92, z: 84, steer: 1 },
+    { edge: 'right side at the front corner', x: 5.08, z: 82.94, steer: -1 },
+  ] as const)('hits the Iceglass spur when the skid enters its $edge below the top', ({ x, z, steer }) => {
+    const run = Object.assign(createRun(COURSES[1]), { x, z, y: 1.00125, vy: -9.225, grounded: false })
+    expect(stepRun(run, { ...idle, steer })).toContain('crash')
+    expect(run.failure).toBe('impact')
+  })
+
+  it('lands after clearing the front of the same spur earlier in the tick', () => {
+    const run = Object.assign(createRun(COURSES[1]), { x: 4, z: 82.94, y: 1.00125, vy: -9.225, grounded: false })
+    stepRun(run, idle)
+    expect(run).toMatchObject({ status: 'racing', y: 0.9, grounded: true })
+  })
+
+  it('hits a raised face when ascending from below even if the tick ends above it', () => {
+    const run = Object.assign(createRun(COURSES[1]), { x: 4, z: 82.95, y: 0.83, vy: 6.225, grounded: false })
+    expect(stepRun(run, idle)).toContain('crash')
+    expect(run.failure).toBe('impact')
+  })
+
   it('ends a run from a fall or barrier contact and restarts with full meters', () => {
     const run = createRun({ ...testCourse, surfaces: [{ ...road, zMax: 5 }] })
     advance(run, 150)
@@ -113,6 +135,22 @@ describe('flight dynamics', () => {
     expect(missed.status).not.toBe('finished')
     const clear = launchAtEdge(5.95)
     expect(stepRun(clear, { ...idle, steer: 1 })).toContain('finish')
+  })
+
+  it.each([
+    { approach: 'airborne below', y: 0.015, vy: -3, grounded: false, expected: false },
+    { approach: 'airborne above', y: 0.15, vy: -3, grounded: false, expected: true },
+    { approach: 'on the deck', y: 0, vy: 0, grounded: true, expected: true },
+  ])('checks the $approach crossing before steering off the Ember finish deck', ({ y, vy, grounded, expected }) => {
+    const run = Object.assign(createRun(COURSES[2]), { x: -0.775, z: 499.84, y, vy, grounded })
+    const events = stepRun(run, { ...idle, steer: 1 })
+    expect(events.includes('finish')).toBe(expected)
+  })
+
+  it('finishes when a descent lands on the finish deck before crossing the stripe', () => {
+    const run = Object.assign(createRun(COURSES[2]), { x: -2, z: 499.75, y: 0.01, vy: -3, grounded: false })
+    expect(stepRun(run, idle)).toContain('finish')
+    expect(run.grounded).toBe(true)
   })
 })
 
