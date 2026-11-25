@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 test('courier selection, field guide, mute, and pause work from the dispatch desk', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', e => errors.push(e.message))
-  await page.goto('/')
+  await page.goto('games/bellwind-post/')
   await expect(page).toHaveTitle(/Bellwind Post/)
   await page.getByRole('button', { name: 'Field guide' }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
@@ -26,7 +26,7 @@ test('courier selection, field guide, mute, and pause work from the dispatch des
 test('Space clears the first gap immediately after muting during a delivery', async ({ page }) => {
   await page.clock.install({ time: new Date('2030-01-01T12:00:00Z') })
   await page.clock.pauseAt(new Date('2030-01-01T12:01:00Z'))
-  await page.goto('/')
+  await page.goto('games/bellwind-post/')
   await page.getByRole('button', { name: 'Start delivery' }).click({ force: true })
   await expect(page.locator('#stage')).toBeVisible()
   await page.keyboard.down('ArrowRight')
@@ -43,7 +43,7 @@ test('Space clears the first gap immediately after muting during a delivery', as
 
 test('landscape players can mute beside Pause and retain their preference at the desk', async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 375 })
-  await page.goto('/')
+  await page.goto('games/bellwind-post/')
   await page.getByRole('button', { name: 'Start delivery' }).click()
   const hud = page.locator('.hud')
   await expect(hud.getByRole('button', { name: 'Mute sound' })).toBeInViewport()
@@ -57,7 +57,7 @@ test('landscape players can mute beside Pause and retain their preference at the
 })
 
 test('the stamp total stays on one line and the HUD fits narrow phones', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('games/bellwind-post/')
   await page.getByRole('button', { name: 'Start delivery' }).click()
   await expect(page.locator('#stage')).toBeVisible()
   await page.evaluate(() => document.fonts.ready)
@@ -87,7 +87,7 @@ async function delaySceneLoad(page: Page) {
     await gate
     await route.continue()
   })
-  await page.goto('/')
+  await page.goto('games/bellwind-post/')
   const requested = page.waitForRequest(artwork)
   await page.getByRole('button', { name: 'Start delivery' }).click()
   await requested

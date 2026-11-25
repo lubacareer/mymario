@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f8f5e9" />
+    <meta
+      name="description"
+      content="Deliver the morning mail with Nia or Finn in a hand-painted sky-island platformer."
+    />
+    <title>Bellwind Post · Sky Islands</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='12' fill='%23db533b'/%3E%3Cpath d='M10 19h44v29H10z' fill='%23fff5db'/%3E%3Cpath d='m10 19 22 17 22-17' fill='none' stroke='%23db533b' stroke-width='4'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="mast-inner">
+        <div class="brand">
+          <span class="brand-stamp"
+            ><i class="ph ph-envelope-simple" aria-hidden="true"></i></span
+          ><span>Bellwind Post</span>
+        </div>
+        <nav id="desk-tools" aria-label="Game tools">
+          <button class="tool" id="guide-open">
+            <i class="ph ph-book-open" aria-hidden="true"></i
+            ><span>Field guide</span>
+          </button>
+          <span class="nav-rule"></span>
+          <button
+            class="tool sound"
+            id="sound"
+            aria-label="Mute sound"
+            title="Mute sound"
+          >
+            <i class="ph ph-speaker-high" aria-hidden="true"></i
+            ><span>Sound on</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section id="desk" aria-label="Dispatch desk">
+        <a class="back-library" href="../../"><i class="ph ph-arrow-left" aria-hidden="true"></i> Library</a>
+        <div class="postcard">
+          <div class="card-sky"></div>
+          <div class="paper-wash"></div>
+          <img
+            class="couriers-art"
+            src="/art/couriers.webp"
+            alt=""
+            fetchpriority="high"
+          />
+          <div class="postcard-copy">
+            <div class="route-label">
+              <i class="ph ph-compass" aria-hidden="true"></i> Route 01
+              <span></span> Sky Islands
+            </div>
+            <h1>Bellwind<br /><em>Post</em></h1>
+            <p>
+              The morning mail is in your hands. Leap between sky islands and
+              ring the delivery bell.
+            </p>
+          </div>
+          <div class="airmail-edge" aria-hidden="true"></div>
+        </div>
+
+        <div class="dispatch">
+          <div class="dispatch-title">
+            <h2>Choose your courier</h2>
+            <span class="section-line"></span
+            ><i class="ph ph-envelope-simple-open" aria-hidden="true"></i>
+          </div>
+          <div class="dispatch-row">
+            <div class="courier-options" role="group" aria-label="Couriers">
+              <button class="courier" data-hero="nia" aria-pressed="true">
+                <span class="portrait nia"
+                  ><img src="/art/nia-portrait.webp" alt="" /></span
+                ><span class="courier-text"
+                  ><strong>Nia</strong><small>Female courier</small></span
+                ><span class="choice-mark" aria-hidden="true"></span>
+              </button>
+              <button class="courier" data-hero="finn" aria-pressed="false">
+                <span class="portrait finn"
+                  ><img src="/art/finn-portrait.webp" alt="" /></span
+                ><span class="courier-text"
+                  ><strong>Finn</strong><small>Male courier</small></span
+                ><span class="choice-mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <button class="primary start" id="start">
+              <i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Start
+              delivery<span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+        <div class="desk-foot">
+          <span
+            ><i class="ph ph-keyboard"></i> <kbd>←</kbd><kbd>→</kbd> Move
+            <b>·</b> <kbd>Space</kbd> Jump</span
+          ><span
+            ><i class="ph ph-device-mobile"></i> Touch controls supported</span
+          >
+        </div>
+      </section>
+      <section id="game" hidden aria-label="Sky Islands delivery">
+        <div class="game-header">
+          <div>
+            <div class="route-label">Route 01 <span></span> Sky Islands</div>
+            <h2>Morning delivery</h2>
+          </div>
+          <div class="hud">
+            <span class="hud-item" aria-label="Lives"
+              ><i class="ph ph-heart"></i><strong id="lives">3</strong></span
+            >
+            <span class="hud-item" aria-label="Stamps"
+              ><i class="ph ph-stamp"></i><strong id="stamps">0</strong
+              ><small>/ 12</small></span
+            >
+            <button id="pause" class="square" aria-label="Pause delivery">
+              <i class="ph ph-pause"></i>
+            </button>
+          </div>
+        </div>
+        <div class="stage-frame">
+          <canvas
+            id="stage"
+            tabindex="-1"
+            aria-label="Sky Islands platform game"
+            >Use the left and right arrows to move and Space to jump.</canvas
+          >
+          <div id="notice" role="status"></div>
+          <div class="game-overlay" id="overlay" hidden>
+            <div class="overlay-card">
+              <i id="overlay-icon" class="ph ph-envelope-simple"></i>
+              <h2 id="overlay-title">Delivery paused</h2>
+              <p id="overlay-description"></p>
+              <div class="overlay-actions">
+                <button id="continue" class="primary">Resume delivery</button
+                ><button class="secondary" id="retry">Restart delivery</button
+                ><button id="choose" class="plain">Choose courier</button>
+              </div>
+              <a class="back-library" href="../../">Library</a>
+            </div>
+          </div>
+        </div>
+        <div class="game-controls">
+          <div class="keyboard-hint">
+            <kbd>←</kbd><kbd>→</kbd> Move <b>·</b> <kbd>Space</kbd> Jump
+            <b>·</b> <kbd>Esc</kbd> Pause
+          </div>
+          <div class="touch-pad">
+            <div>
+              <button id="left" class="pad" aria-label="Move left">←</button
+              ><button id="right" class="pad" aria-label="Move right">→</button>
+            </div>
+            <button id="jump" class="pad jump" aria-label="Jump">
+              <i class="ph ph-arrow-up"></i> Jump
+            </button>
+          </div>
+        </div>
+      </section>
+      <p id="load-error" role="alert" hidden></p>
+    </main>
+    <dialog id="guide" aria-labelledby="guide-title">
+      <div class="guide-top">
+        <i class="ph ph-book-open"></i
+        ><button class="square" id="guide-close" aria-label="Close field guide">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <h2 id="guide-title">Field guide</h2>
+      <p>
+        Reach the brass bell at the far end of the sky islands. Either courier
+        can make every jump.
+      </p>
+      <dl>
+        <dt>Move &amp; jump</dt>
+        <dd>
+          Use ← → or A/D to move. Press Space, ↑, or W to jump. Hold for height,
+          tap for a short hop. On touchscreens, hold an arrow while tapping
+          Jump.
+        </dd>
+        <dt>Stamps &amp; beetles</dt>
+        <dd>
+          Collect up to 12 winged stamps. Land on a puffbeetle from above to
+          bounce. Bumping its side or falling costs one life.
+        </dd>
+        <dt>The windmill</dt>
+        <dd>
+          Pass the windmill to set your checkpoint. Collected stamps stay in
+          your bag after a fall. Three lost lives end the delivery.
+        </dd>
+      </dl>
+    </dialog>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

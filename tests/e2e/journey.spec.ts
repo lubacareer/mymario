@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 async function startDelivery(page: Page, hero: 'Nia' | 'Finn') {
   await page.clock.install({ time: new Date('2030-01-01T12:00:00Z') })
   await page.clock.pauseAt(new Date('2030-01-01T12:01:00Z'))
-  await page.goto('/')
+  await page.goto('games/bellwind-post/')
   await page.getByRole('button', { name: new RegExp(hero, 'i') }).click({ force: true })
   await page.getByRole('button', { name: /start delivery/i }).click({ force: true })
   await expect(page.locator('#stage')).toBeVisible()
