@@ -31,6 +31,7 @@ jobs:
     needs: game
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
@@ -39,7 +40,16 @@ jobs:
     concurrency:
       group: pages
       cancel-in-progress: false
+      queue: max
     steps:
+      - name: Read current main commit
+        id: main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
       - name: Deploy tested arcade
         id: publish
+        if: steps.main.outputs.sha == github.sha
         uses: actions/deploy-pages@v5

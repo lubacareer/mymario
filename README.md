@@ -61,7 +61,7 @@ npm run test:e2e
 
 Simulation tests run at a fixed 60 Hz. Playwright builds the production site and visits the three pages under `/mymario/`. Keyboard and touch journeys reach the delivery bell and finish all three space roads.
 
-The Game checks workflow tests pushes and pull requests. A successful push to `main` publishes that same tested `dist/` artifact to [GitHub Pages](https://lubacareer.github.io/mymario/).
+The Game checks workflow tests pushes and pull requests. Before publishing the tested `dist/` artifact to [GitHub Pages](https://lubacareer.github.io/mymario/), the deploy job verifies that the commit is still the head of `main`.
 
 ## Artwork
 
