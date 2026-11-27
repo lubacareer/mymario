@@ -70,6 +70,10 @@ function refreshRouteTickets() {
   element("route-access").hidden = progress.carnivalUnlocked;
 }
 
+window.addEventListener("storage", event => {
+  if (progress.syncUnlock(event)) refreshRouteTickets();
+});
+
 function selectRoute(id: RouteId) {
   if (id === "carnival" && !progress.carnivalUnlocked) return;
   selectedRoute = id;

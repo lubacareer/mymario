@@ -21,6 +21,30 @@ it("begins with Morning Delivery if the route flag is malformed", () => {
   expect(createRouteProgress(storage).carnivalUnlocked).toBe(false);
 });
 
+it("accepts a saved unlock from the same storage area once and keeps it for the visit", () => {
+  const storage = { getItem: () => null, setItem: vi.fn() };
+  const progress = createRouteProgress(storage);
+  const saved = { storageArea: storage, key: "bellwind-post.cloud-carnival.v1", newValue: "unlocked" };
+  for (const change of [
+    { ...saved, storageArea: { ...storage } },
+    { ...saved, key: "another-game" },
+    { ...saved, newValue: "invalid" },
+    { ...saved, key: null, newValue: null },
+  ]) {
+    expect(progress.syncUnlock(change)).toBe(false);
+    expect(progress.carnivalUnlocked).toBe(false);
+  }
+  expect(progress.syncUnlock(saved)).toBe(true);
+  expect(progress.syncUnlock(saved)).toBe(false);
+  expect(progress.syncUnlock({ ...saved, newValue: null })).toBe(false);
+  expect(progress.carnivalUnlocked).toBe(true);
+  expect(storage.setItem).not.toHaveBeenCalled();
+
+  const sessionOnly = createRouteProgress(null);
+  expect(sessionOnly.syncUnlock({ ...saved, storageArea: null })).toBe(false);
+  expect(sessionOnly.carnivalUnlocked).toBe(false);
+});
+
 it("keeps the unlock for this visit if reading or writing storage fails", () => {
   const denied = () => { throw new Error("Storage unavailable"); };
   const store = createRouteProgress({ getItem: denied, setItem: denied });
