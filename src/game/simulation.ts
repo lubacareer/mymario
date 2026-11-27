@@ -1,9 +1,11 @@
-import { LEVEL, type Rect } from './level'
+import { LEVEL, ROUTES, type Level, type Rect, type RouteId } from './level'
+import { boothSeals, CARNIVAL_PROPS, floatAt, type Booths } from './carnival'
 
 export { LEVEL }
 export const STEP_SECONDS = 1 / 60
 export type Hero = 'nia' | 'finn'
 export type GameEvent = 'jump' | 'stamp' | 'stomp' | 'hurt' | 'checkpoint' | 'victory' | 'gameover'
+  | 'drum' | 'ribbon' | 'lantern'
 type Direction = -1 | 0 | 1
 
 export interface InputFrame {
@@ -31,6 +33,8 @@ interface Enemy extends Rect {
 }
 
 export interface GameState {
+  level: Level
+  booths: Booths
   hero: Hero
   status: 'playing' | 'won' | 'lost'
   lives: number
@@ -54,6 +58,9 @@ const PLAYER_HEIGHT = 32
 const BEETLE_WIDTH = 26
 const BEETLE_HEIGHT = 19
 const STAMP_RADIUS = 8
+const DRUM_BOUNCE = 520
+const carnivalGround = [...ROUTES.carnival.platforms, CARNIVAL_PROPS.drum, ...CARNIVAL_PROPS.lanterns]
+const carnivalClosed = [...carnivalGround, CARNIVAL_PROPS.gate]
 
 function spawnPlayer(point: { x: number; y: number }): Player {
   return {
@@ -63,17 +70,19 @@ function spawnPlayer(point: { x: number; y: number }): Player {
   }
 }
 
-function spawnEnemies(): Enemy[] {
-  return LEVEL.patrols.map(({ id, left, right, floorY, speed }) => ({
+function spawnEnemies(level: Level): Enemy[] {
+  return level.patrols.map(({ id, left, right, floorY, speed }) => ({
     id, left, right, x: left, y: floorY - BEETLE_HEIGHT,
     vx: speed, w: BEETLE_WIDTH, h: BEETLE_HEIGHT, alive: true,
   }))
 }
 
-export function createGame(hero: Hero): GameState {
+export function createGame(hero: Hero, routeId: RouteId = 'morning'): GameState {
+  const level = ROUTES[routeId]
   return {
+    level, booths: { drum: false, ribbons: new Set(), lanterns: new Set() },
     hero, status: 'playing', lives: 3, checkpoint: false, collected: new Set(),
-    player: spawnPlayer(LEVEL.spawn), enemies: spawnEnemies(), ticks: 0,
+    player: spawnPlayer(level.spawn), enemies: spawnEnemies(level), ticks: 0,
   }
 }
 
@@ -85,13 +94,13 @@ function overlapsY(a: Rect, b: Rect) {
   return a.y < b.y + b.h && a.y + a.h > b.y
 }
 
-function moveHorizontal(p: Player, direction: Direction) {
+function moveHorizontal(p: Player, direction: Direction, width: number, solids: readonly Rect[]) {
   const target = direction * RUN_SPEED
   const change = (direction === 0 ? BRAKING : ACCELERATION) * STEP_SECONDS
   p.vx += Math.max(-change, Math.min(change, target - p.vx))
   if (direction !== 0) p.facing = direction
-  p.x = Math.max(0, Math.min(LEVEL.width - p.w, p.x + p.vx * STEP_SECONDS))
-  for (const block of LEVEL.platforms) {
+  p.x = Math.max(0, Math.min(width - p.w, p.x + p.vx * STEP_SECONDS))
+  for (const block of solids) {
     if (!overlapsX(p, block) || !overlapsY(p, block)) continue
     if (p.vx > 0) p.x = block.x - p.w
     if (p.vx < 0) p.x = block.x + block.w
@@ -118,25 +127,36 @@ function beginJump(p: Player, input: InputFrame, events: GameEvent[]) {
   if (!p.grounded && p.coyoteTicks > 0) p.coyoteTicks--
 }
 
-function moveVertical(p: Player) {
+function moveVertical(p: Player, solids: readonly Rect[], float?: Rect) {
   const previousTop = p.y
   const previousSpeed = p.vy
   p.vy += GRAVITY * STEP_SECONDS
   p.y += (previousSpeed + p.vy) * 0.5 * STEP_SECONDS
   p.grounded = false
 
-  for (const block of LEVEL.platforms) {
+  let landed: Rect | undefined
+  for (const block of solids) {
     if (!overlapsX(p, block)) continue
     if (p.vy > 0 && previousTop + p.h <= block.y && p.y + p.h >= block.y) {
       p.y = block.y - p.h
       p.vy = 0
       p.grounded = true
       p.cutJump = false
+      landed = block
     } else if (p.vy < 0 && previousTop >= block.y + block.h && p.y <= block.y + block.h) {
       p.y = block.y + block.h
       p.vy = 0
     }
   }
+  // The parade deck is one-way so players can board it from the return walkway below.
+  if (float && overlapsX(p, float) && p.vy > 0 && previousTop + p.h <= float.y && p.y + p.h >= float.y) {
+    p.y = float.y - p.h
+    p.vy = 0
+    p.grounded = true
+    p.cutJump = false
+    landed = float
+  }
+  return landed
 }
 
 function patrol(enemy: Enemy) {
@@ -154,8 +174,8 @@ function loseLife(state: GameState, events: GameEvent[]) {
     state.status = 'lost'
     events.push('gameover')
   } else {
-    state.player = spawnPlayer(state.checkpoint ? LEVEL.checkpoint : LEVEL.spawn)
-    state.enemies = spawnEnemies()
+    state.player = spawnPlayer(state.checkpoint ? state.level.checkpoint : state.level.spawn)
+    state.enemies = spawnEnemies(state.level)
   }
 }
 
@@ -180,23 +200,51 @@ function contactEnemies(state: GameState, previousBottom: number, events: GameEv
   return false
 }
 
+function touchesPickup(p: Player, item: { x: number; y: number }) {
+  const dx = Math.max(p.x - item.x, item.x - p.x - p.w, 0)
+  const dy = Math.max(p.y - item.y, item.y - p.y - p.h, 0)
+  return dx * dx + dy * dy <= STAMP_RADIUS * STAMP_RADIUS
+}
+
+function visitBooths(state: GameState, landed: Rect | undefined, events: GameEvent[]) {
+  if (landed === CARNIVAL_PROPS.drum) {
+    state.booths.drum = true
+    state.player.vy = -DRUM_BOUNCE
+    state.player.grounded = false
+    state.player.cutJump = false
+    state.player.coyoteTicks = 0
+    events.push('drum')
+  }
+  for (const lantern of CARNIVAL_PROPS.lanterns) {
+    if (landed === lantern && !state.booths.lanterns.has(lantern.id)) {
+      state.booths.lanterns.add(lantern.id)
+      events.push('lantern')
+    }
+  }
+  for (const ribbon of CARNIVAL_PROPS.ribbons) {
+    if (!state.booths.ribbons.has(ribbon.id) && touchesPickup(state.player, ribbon)) {
+      state.booths.ribbons.add(ribbon.id)
+      events.push('ribbon')
+    }
+  }
+}
+
 function collectAndDeliver(state: GameState, events: GameEvent[]) {
   const p = state.player
-  for (const stamp of LEVEL.stamps) {
-    if (state.collected.has(stamp.id)) continue
-    const dx = Math.max(p.x - stamp.x, stamp.x - p.x - p.w, 0)
-    const dy = Math.max(p.y - stamp.y, stamp.y - p.y - p.h, 0)
-    if (dx * dx + dy * dy <= STAMP_RADIUS * STAMP_RADIUS) {
+  const level = state.level
+  for (const stamp of level.stamps) {
+    if (!state.collected.has(stamp.id) && touchesPickup(p, stamp)) {
       state.collected.add(stamp.id)
       events.push('stamp')
     }
   }
   const centreX = p.x + p.w / 2
-  if (!state.checkpoint && centreX >= LEVEL.checkpoint.x && p.y + p.h <= LEVEL.checkpoint.y) {
+  if (!state.checkpoint && centreX >= level.checkpoint.x && p.y + p.h <= level.checkpoint.y) {
     state.checkpoint = true
     events.push('checkpoint')
   }
-  if (centreX >= LEVEL.bell.x && p.y + p.h <= LEVEL.bell.y) {
+  if (centreX >= level.bell.x && p.y + p.h <= level.bell.y
+    && (level.id === 'morning' || boothSeals(state.booths) === 3)) {
     state.status = 'won'
     events.push('victory')
   }
@@ -208,11 +256,22 @@ export function stepGame(state: GameState, input: InputFrame): GameEvent[] {
   if (state.status !== 'playing') return events
   state.ticks++
   const player = state.player
+  let solids: readonly Rect[] = state.level.platforms
+  let float: Rect | undefined
+  if (state.level.id === 'carnival') {
+    solids = boothSeals(state.booths) === 3 ? carnivalGround : carnivalClosed
+    float = floatAt(state.ticks)
+    const prior = floatAt(state.ticks - 1)
+    if (player.grounded && player.y + player.h === prior.y && overlapsX(player, prior)) {
+      player.x += float.x - prior.x
+    }
+  }
   const previousBottom = player.y + player.h
   beginJump(player, input, events)
-  moveHorizontal(player, input.direction)
-  moveVertical(player)
-  if (player.y > LEVEL.height + player.h) {
+  moveHorizontal(player, input.direction, state.level.width, solids)
+  const landed = moveVertical(player, solids, float)
+  if (state.level.id === 'carnival') visitBooths(state, landed, events)
+  if (player.y > state.level.height + player.h) {
     loseLife(state, events)
     return events
   }

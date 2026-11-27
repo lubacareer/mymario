@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#f8f5e9" />
     <meta
       name="description"
-      content="Deliver the morning mail with Nia or Finn in a hand-painted sky-island platformer."
+      content="Deliver the morning mail with Nia or Finn and unlock a second route through the Cloud Carnival."
     />
     <title>Bellwind Post · Sky Islands</title>
     <link
@@ -58,11 +58,11 @@
           />
           <div class="postcard-copy">
             <div class="route-label">
-              <i class="ph ph-compass" aria-hidden="true"></i> Route 01
-              <span></span> Sky Islands
+              <i class="ph ph-compass" aria-hidden="true"></i> <b id="desk-route-number">Route 01</b>
+              <span></span> <b id="desk-route-place">Sky Islands</b>
             </div>
             <h1>Bellwind<br /><em>Post</em></h1>
-            <p>
+            <p id="desk-route-copy">
               The morning mail is in your hands. Leap between sky islands and
               ring the delivery bell.
             </p>
@@ -71,6 +71,20 @@
         </div>
 
         <div class="dispatch">
+          <div class="route-options" role="group" aria-label="Delivery routes">
+            <button class="route-ticket" data-route="morning" aria-label="Morning Delivery" aria-pressed="true">
+              <i class="ph ph-sun-horizon" aria-hidden="true"></i>
+              <span><small>Route 01</small><strong>Morning Delivery</strong></span>
+              <span class="choice-mark" aria-hidden="true"></span>
+            </button>
+            <button class="route-ticket" data-route="carnival" aria-label="Cloud Carnival" aria-describedby="route-access" aria-pressed="false" disabled>
+              <i class="ph ph-mask-happy" aria-hidden="true"></i>
+              <span><small>Route 02</small><strong>Cloud Carnival</strong></span>
+              <i class="ph ph-lock-simple" id="route-lock" aria-hidden="true"></i>
+              <span class="choice-mark" id="carnival-choice" aria-hidden="true" hidden></span>
+            </button>
+          </div>
+          <p id="route-access">Finish Morning Delivery to unlock Cloud Carnival.</p>
           <div class="dispatch-title">
             <h2>Choose your courier</h2>
             <span class="section-line"></span
@@ -111,8 +125,8 @@
       <section id="game" hidden aria-label="Sky Islands delivery">
         <div class="game-header">
           <div>
-            <div class="route-label">Route 01 <span></span> Sky Islands</div>
-            <h2>Morning delivery</h2>
+            <div class="route-label"><b id="game-route-number">Route 01</b> <span></span> <b id="game-route-place">Sky Islands</b></div>
+            <h2 id="route-name">Morning Delivery</h2>
           </div>
           <div class="hud">
             <span class="hud-item" aria-label="Lives"
@@ -120,12 +134,16 @@
             >
             <span class="hud-item" aria-label="Stamps"
               ><i class="ph ph-stamp"></i><strong id="stamps">0</strong
-              ><small>/ 12</small></span
+              ><small id="stamp-total">/ 12</small></span
             >
             <button id="pause" class="square" aria-label="Pause delivery">
               <i class="ph ph-pause"></i>
             </button>
           </div>
+        </div>
+        <div class="booth-progress" id="booth-progress" hidden>
+          <span class="seal-count"><i class="ph ph-seal-check" aria-hidden="true"></i> <strong id="seals">0</strong>/3 seals</span>
+          <span id="objective" aria-live="polite" aria-atomic="true"></span>
         </div>
         <div class="stage-frame">
           <canvas
@@ -142,9 +160,11 @@
               <p id="overlay-description"></p>
               <div class="overlay-actions">
                 <button id="continue" class="primary">Resume delivery</button
+                ><button id="next-route" class="primary" hidden>Continue to Cloud Carnival</button
                 ><button class="secondary" id="retry">Restart delivery</button
                 ><button id="choose" class="plain">Choose courier</button>
               </div>
+              <button class="plain" id="pause-guide" hidden>Route guide</button>
               <a class="back-library" href="../../">Library</a>
             </div>
           </div>
@@ -175,10 +195,11 @@
         </button>
       </div>
       <h2 id="guide-title">Field guide</h2>
-      <p>
+      <p id="guide-intro">
         Reach the brass bell at the far end of the sky islands. Either courier
         can make every jump.
       </p>
+      <p id="guide-progress" hidden></p>
       <dl>
         <dt>Move &amp; jump</dt>
         <dd>
@@ -188,14 +209,22 @@
         </dd>
         <dt>Stamps &amp; beetles</dt>
         <dd>
-          Collect up to 12 winged stamps. Land on a puffbeetle from above to
+          Collect up to <span id="guide-stamp-total">12</span> winged stamps. Land on a puffbeetle from above to
           bounce. Bumping its side or falling costs one life.
         </dd>
-        <dt>The windmill</dt>
-        <dd>
+        <dt id="guide-checkpoint-name">The windmill</dt>
+        <dd id="guide-checkpoint-copy">
           Pass the windmill to set your checkpoint. Collected stamps stay in
           your bag after a fall. Three lost lives end the delivery.
         </dd>
+      </dl>
+      <dl id="carnival-guide" hidden>
+        <dt>Brass Bandstand</dt>
+        <dd>Jump onto the striped drum to wake the band and bounce upward.</dd>
+        <dt>Kite Midway</dt>
+        <dd>Ride the parade float and jump for the high kite. Collect all three ribbons. Follow the lower path back if you miss one.</dd>
+        <dt>Lantern Grandstand</dt>
+        <dd>Land on both star pads, in either order. The three booth seals open the arch to the rooftop bell.</dd>
       </dl>
     </dialog>
     <script type="module" src="/src/main.ts"></script>

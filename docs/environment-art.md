@@ -17,3 +17,30 @@ Use case: stylized-concept. Asset type: single isolated side-view floating grass
 ## public/art/windmill.webp
 
 Use case: stylized-concept. Asset type: isolated background prop for an illustrated 2D sky-island postal platformer. Single picturesque old white-stucco windmill with four cream canvas sails, a coral red roof, warm brass fittings and small teal door, in a whimsical travel-poster gouache style, drawn with navy ink outlines, woodcut hatch accents and painterly highlights, matching mint sky and teal islands. Tower stands straight, slight playful angle to blades, mostly front side view. Whole building down to its straight footing, no terrain under it. Transparent background, fully isolated silhouette with clear margin, no text, UI, banners with lettering, people or logos.
+
+
+## Cloud Carnival skyline and landmarks
+
+The dusk sky is an opaque panorama in `public/art/carnival/sky.webp`. Six transparent illustrations came from one generated sheet. The top row supplies `bandstand.webp`, `kite-booth.webp`, and `grandstand.webp`. The bottom row supplies `float.webp`, `crowd.webp`, and `arch.webp`. Each cell was cropped to its visible artwork before WebP export. The game scales each prop proportionally. Interactive drums, kites, star pads and pennants are drawn at simulation coordinates.
+
+### Skyline prompt
+
+Use case: illustration-story. A single premium hand-painted landscape for a whimsical side-scrolling flying-islands postal platform game, retro 1930s rail travel-poster gouache art with expressive ink contours, warm painterly buttery textures and a graphic palette of dusty mauve, apricot, plum, periwinkle and deep petrol blue. Cloud Carnival at blue hour: luminous warm tangerine sunset near right third and a dusky blue-violet sky; regal banks of billowing salmon and lavender clouds, small distant floating islands supporting clusters of striped circus tents, distant violet Ferris wheel and tiny strings of flickering golden lights. A few small warm hot-air balloons aloft. Faraway spires faintly silhouette into the scenic haze. The middle ground of this painting is a soft quiet open sky in the central third of the image for separate game layer readability. A richly painted fantastical atmosphere with beautifully dramatic clouds framing left and right. No characters, no readable words, no letters, no UI, no border or logos, no near foreground objects or platforms. The terrain and player will be composited separately. Opaque panorama in wide landscape 16:9.
+
+### Landmark sheet prompt
+
+Use case: stylized-concept. One single professional 2D side-view platform game sprite atlas of six individually isolated handcrafted illustrations on genuine TRANSPARENT alpha. Exact orderly 3-column x 2-row grid for slicing. Each item fully inside its own cell with transparent gutter on all sides, no shared scenery, no background fill, no ground beneath; front-facing side-scroller elevation, feet/bases straight, every asset entire silhouette visible. Six items in fixed reading order:
+
+Top LEFT: large lively miniature brass bandstand pavilion with domed striped red and cream fabric canopy, scalloped gold tassels, teal and gold pillars, three tiny costumed trumpet and tuba musicians on stage; colorful instrument brass glints.
+
+Top CENTER: playful teal-and-coral kite vendor booth with an angled striped awning, stylized diamond hand-painted paper kites on short poles behind the booth and a kite spool at the front, paper ribbons.
+
+Top RIGHT: beautiful ornate timber carnival grandstand, indigo and maroon striped roof, gold stars and upholstered seating with a cheering audience of tiny colorful spectators. Lights softly warm, recognizable terrace/podium frame, broad frontal structure.
+
+Bottom LEFT: a single especially wide, shallow parade float viewed from the SIDE. An ornate sky-boat hull decorated like a stylized teal swallow in flight with coral scalloped feathers, tiny tassels below; perfectly FLAT horizontal walkable wooden deck at the very top edge, no roof, pennants, objects or sail above deck. Silhouette ratio about 3.4:1. No wheels touching ground.
+
+Bottom CENTER: four full-body cheering little diverse sky villagers shoulder-to-shoulder, waving hands in quaint 1930s carnival dress with stylized lively expressions, one holding a coral balloon animal and another a teal pinwheel; distinct gestural readable silhouettes. Tiny group faces camera.
+
+Bottom RIGHT: one ceremonial entry arch for a street carnival, two teal and coral striped narrow posts, an ornate curved brass crown with winged envelope motif and a gold star at the top. Large fully transparent open doorway from floor to arch top. No words, signage lettering or dangling drape in opening.
+
+Style across ALL six assets: richly detailed traditional animation background painting in opaque gouache and colored pencil, confident midnight-blue ink and print hatching, outlined friendly shapes, aged brass, warm coral sunset rim light, cream reflections, refined texture. These assets need to read at small video game scale. No labels, no numbers, no typography, no UI, no drawn lines separating the grid. Wide 3:2 composition, equal sized cells.

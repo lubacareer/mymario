@@ -1,24 +1,25 @@
-import { LEVEL, type GameState } from './game/simulation';
-import { loadGraphics, type Graphics } from './graphics';
+import type { GameState } from './game/simulation';
+import { ROUTES, type Platform, type RouteId } from './game/level';
+import { loadGraphics } from './graphics';
+import { drawCarnivalScenery, drawCarnivalDevices, drawFinale } from './carnival-scene';
 import { cameraLayout, courierFrame, islandSlices } from './scene-layout';
 
 type Paint = CanvasRenderingContext2D;
 type View = ReturnType<typeof cameraLayout>;
-type Platform = typeof LEVEL.platforms[number];
 
 const ATLAS_SCALE = 2;
 const POST_OFFICE_HEIGHT = 84;
-const POST_OFFICE_X = LEVEL.spawn.x + 60;
 // Ground contact sits midway down the grass strip (around row 108 of the 320px source).
 const SURFACE_IN_IMAGE = 108 / 320;
 const TAU = Math.PI * 2;
 
-function drawSky(ctx: Paint, sky: HTMLImageElement, view: View) {
+function drawSky(ctx: Paint, sky: HTMLImageElement, view: View, stageWidth: number, carnival: boolean) {
   const scale = Math.max(view.width / sky.width, view.height / sky.height) * 1.07;
   const width = sky.width * scale;
   const height = sky.height * scale;
-  const progress = view.cameraX / Math.max(1, LEVEL.width - view.width);
+  const progress = view.cameraX / Math.max(1, stageWidth - view.width);
   ctx.drawImage(sky, -(width - view.width) * (0.25 + 0.5 * progress), (view.height - height) / 2, width, height);
+  if (carnival) return;
   const haze = ctx.createLinearGradient(0, 0, 0, view.height);
   haze.addColorStop(0, 'rgba(239, 249, 231, 0.07)');
   haze.addColorStop(0.72, 'rgba(230, 246, 238, 0.37)');
@@ -98,7 +99,7 @@ function drawBeetles(ctx: Paint, image: HTMLImageElement, state: GameState, visi
 }
 
 function drawStamps(ctx: Paint, image: HTMLImageElement, state: GameState, visible: (x: number) => boolean, time: number) {
-  for (const stamp of LEVEL.stamps) {
+  for (const stamp of state.level.stamps) {
     if (state.collected.has(stamp.id) || !visible(stamp.x)) continue;
     const phase = Math.sin(time * 2.5 + stamp.x * 0.025);
     const y = stamp.y + phase * 1.5;
@@ -112,13 +113,13 @@ function drawStamps(ctx: Paint, image: HTMLImageElement, state: GameState, visib
   }
 }
 
-function drawCheckpoint(ctx: Paint, image: HTMLImageElement, active: boolean) {
-  const { x, y } = LEVEL.checkpoint;
+function drawCheckpoint(ctx: Paint, image: HTMLImageElement, state: GameState) {
+  const { x, y } = state.level.checkpoint;
   drawAtFeet(ctx, image, x, y + 1, 102);
   // The postal pennant changes colour when the courier has checked in.
   ctx.fillStyle = '#665640';
   ctx.fillRect(x + 24, y - 28, 1.8, 28);
-  ctx.fillStyle = active ? '#1d8469' : '#ef7756';
+  ctx.fillStyle = state.checkpoint ? '#1d8469' : '#ef7756';
   ctx.beginPath();
   ctx.moveTo(x + 25, y - 28);
   ctx.lineTo(x + 39, y - 25);
@@ -126,13 +127,14 @@ function drawCheckpoint(ctx: Paint, image: HTMLImageElement, active: boolean) {
   ctx.fill();
 }
 
-export async function createScene(canvas: HTMLCanvasElement) {
+export async function createScene(canvas: HTMLCanvasElement, routeId: RouteId = 'morning') {
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('This browser needs Canvas 2D to play Bellwind Post.');
-  const art: Graphics = await loadGraphics();
-  const islands = LEVEL.platforms.map(platform => makeIslandTexture(art.island, platform));
+  const art = await loadGraphics(routeId);
+  const level = ROUTES[routeId];
+  const islands = level.platforms.map(platform => makeIslandTexture(art.island, platform));
 
-  function draw(state: GameState, reducedMotion = false) {
+  function draw(state: GameState, reducedMotion = false, celebrationSeconds = 0) {
     if (!ctx) return;
     const cssWidth = canvas.clientWidth;
     const cssHeight = canvas.clientHeight;
@@ -144,25 +146,34 @@ export async function createScene(canvas: HTMLCanvasElement) {
       canvas.width = width;
       canvas.height = height;
     }
-    const view = cameraLayout(cssWidth, cssHeight, state.player.x + state.player.w / 2, LEVEL.width);
+    const view = cameraLayout(cssWidth, cssHeight, state.player.x + state.player.w / 2, level.width);
     ctx.setTransform(width / view.width, 0, 0, height / view.height, 0, 0);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    drawSky(ctx, art.sky, view);
-    const visible = (x: number) => x >= view.cameraX - 140 && x <= view.cameraX + view.width + 140;
+    drawSky(ctx, art.sky, view, level.width, routeId === 'carnival');
+    const visible = (x: number) => x >= view.cameraX - 180 && x <= view.cameraX + view.width + 180;
     const time = reducedMotion ? 0 : state.ticks / 60;
     ctx.translate(-view.cameraX, view.offsetY);
-    if (visible(POST_OFFICE_X)) drawAtFeet(ctx, art['post-office'], POST_OFFICE_X, LEVEL.spawn.y + 1, POST_OFFICE_HEIGHT);
-    if (visible(LEVEL.checkpoint.x)) drawCheckpoint(ctx, art.windmill, state.checkpoint);
-    if (visible(LEVEL.bell.x)) drawAtFeet(ctx, art.bell, LEVEL.bell.x, LEVEL.bell.y + 1, 67);
-    LEVEL.platforms.forEach((platform, index) => {
+    if ('bandstand' in art) {
+      drawCarnivalScenery(ctx, art, state, visible, time);
+    } else {
+      const officeX = level.spawn.x + 60;
+      if (visible(officeX)) drawAtFeet(ctx, art['post-office'], officeX, level.spawn.y + 1, POST_OFFICE_HEIGHT);
+      if (visible(level.checkpoint.x)) drawCheckpoint(ctx, art.windmill, state);
+    }
+    if (visible(level.bell.x)) drawAtFeet(ctx, art.bell, level.bell.x, level.bell.y + 1, 67);
+    level.platforms.forEach((platform, index) => {
       if (platform.x + platform.w < view.cameraX || platform.x > view.cameraX + view.width) return;
       const texture = islands[index];
       ctx.drawImage(texture.canvas, platform.x, platform.y - texture.height * SURFACE_IN_IMAGE, texture.width, texture.height);
     });
+    if ('bandstand' in art) drawCarnivalDevices(ctx, art, state, visible, time);
     drawStamps(ctx, art.stamp, state, visible, time);
     drawBeetles(ctx, art.beetle, state, visible, time);
     drawCourier(ctx, art[state.hero], state, reducedMotion);
+    if (routeId === 'carnival' && state.status === 'won') {
+      drawFinale(ctx, level.bell, reducedMotion ? 1 : celebrationSeconds);
+    }
   }
   return { draw };
 }

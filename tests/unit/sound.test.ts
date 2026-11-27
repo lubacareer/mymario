@@ -119,3 +119,33 @@ it("retains the short single-voice jump cue", () => {
   expect(voice.frequency.exponentialRampToValueAtTime).toHaveBeenCalledOnce();
   expect(voice.stop.mock.calls[0][0] - context.currentTime).toBeLessThan(0.2);
 });
+
+it.each(["drum", "ribbon", "lantern"] as const)("plays audible voices for the %s booth cue through the mute control", cue => {
+  const { audio, context } = instrumentAudio();
+  audio.play(cue);
+  const voices = context.createOscillator.mock.results;
+  expect(voices.length).toBeGreaterThanOrEqual(2);
+  const master = context.createGain.mock.results[0].value;
+  for (const { value: voice } of voices) {
+    expect(voice.frequency.setValueAtTime).toHaveBeenCalled();
+    const pitches = [
+      ...voice.frequency.setValueAtTime.mock.calls,
+      ...voice.frequency.exponentialRampToValueAtTime.mock.calls,
+    ];
+    for (const [hz] of pitches) {
+      expect(hz).toBeGreaterThanOrEqual(20);
+      expect(hz).toBeLessThanOrEqual(20_000);
+    }
+    const envelope = voice.connect.mock.calls[0][0] as ReturnType<typeof gainNode>;
+    const [[initialGain]] = envelope.gain.setValueAtTime.mock.calls;
+    const [[peak, attackTime], [releaseGain, releaseTime]] = envelope.gain.exponentialRampToValueAtTime.mock.calls;
+    expect(peak).toBeGreaterThan(Math.max(0, initialGain, releaseGain));
+    expect(attackTime).toBeLessThan(releaseTime);
+    expect(envelope.connect).toHaveBeenCalledWith(master);
+  }
+  const count = voices.length;
+  audio.toggle();
+  audio.play(cue);
+  expect(context.createOscillator).toHaveBeenCalledTimes(count);
+  expect(master.gain.value).toBe(0);
+});

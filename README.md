@@ -21,9 +21,9 @@ Open the local address printed by Vite for the library. The dev server serves th
 
 ## Bellwind Post
 
-A hand-painted browser platformer about two postal couriers and a mail route across the sky islands. Choose Nia or Finn, collect up to 12 winged stamps, and ring the brass bell. Both couriers have identical movement and collision rules.
+A hand-painted platformer about two couriers on the sky islands. Choose Nia or Finn at the dispatch desk. Both couriers can collect all 12 optional stamps on each route.
 
-![Bellwind Post courier selection](docs/screenshots/desktop.png)
+![Nia and Finn at the dispatch desk with Cloud Carnival unlocked](docs/screenshots/cloud-carnival-desk.webp)
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
@@ -31,7 +31,15 @@ A hand-painted browser platformer about two postal couriers and a mail route acr
 | Jump | Space, Up, or W | Press Jump with a second finger |
 | Pause | Escape | Pause button |
 
-Tap jump for a low hop or hold it for height. Stomp puffbeetles from above. Crossing the windmill activates a checkpoint. A fall or side hit costs one of three lives. Collected stamps stay in the bag when you respawn.
+Tap Jump for a low hop or hold it for height. Stomp puffbeetles from above. A fall or side hit costs one of three lives. Collected stamps stay in the bag when you respawn.
+
+**Morning Delivery** starts at the hilltop post office. Cross the windmill checkpoint and ring the brass bell to unlock **Cloud Carnival** for either courier. Continue from the victory screen or choose the route at the dispatch desk. The browser remembers the unlock between visits when local storage is available.
+
+**Cloud Carnival** gives the courier three booth seals to earn. Bounce on the bass drum at the Brass Bandstand, ride the parade float to collect three kite ribbons, and light both star pads at the Lantern Grandstand. A lower walkway lets you double back for missed ribbons. Each booth changes the scenery as you complete it. Earn all three seals and ring the rooftop bell to start the confetti finale. Booth progress survives a lost life and resets when you restart the route.
+
+![Nia bouncing above the Brass Bandstand](docs/screenshots/cloud-carnival-desktop.webp)
+
+[Kite Midway on a phone](docs/screenshots/cloud-carnival-phone.webp) · [The first lantern row lit at the grandstand](docs/screenshots/cloud-carnival-grandstand.webp)
 
 ## Aphelion Run
 
@@ -59,7 +67,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Simulation tests run at a fixed 60 Hz. Playwright builds the production site and visits the three pages under `/mymario/`. Keyboard and touch journeys reach the delivery bell and finish all three space roads.
+Simulation tests run at a fixed 60 Hz. Playwright builds the production site and visits the three pages under `/mymario/`. Keyboard and two-finger touch journeys unlock and finish Cloud Carnival and clear all three space roads.
 
 The Game checks workflow tests pushes and pull requests. Before publishing the tested `dist/` artifact to [GitHub Pages](https://lubacareer.github.io/mymario/), the deploy job verifies that the commit is still the head of `main`.
 
